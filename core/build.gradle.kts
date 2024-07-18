@@ -112,6 +112,9 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation("com.google.guava:guava-testlib:18.0")
+                implementation("com.code-intelligence:jazzer-api:0.22.1")
+                implementation("com.code-intelligence:jazzer-junit:0.16.1")
+                implementation("org.junit.jupiter:junit-jupiter:5.9.2")
             }
         }
 
@@ -151,6 +154,8 @@ kotlin {
 tasks {
     named("jvmTest", Test::class) {
         maxHeapSize = "1024m"
+        useJUnitPlatform()
+        testLogging.showStandardStreams = true
     }
 }
 
