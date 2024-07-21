@@ -11,9 +11,9 @@ evaluationDependsOn(":kotlinx-collections-immutable")
 
 kotlin {
     infra {
-        target("macosX64")
-        target("linuxX64")
-        target("mingwX64")
+//        target("macosX64")
+//        target("linuxX64")
+//        target("mingwX64")
     }
 
     jvm {
@@ -22,16 +22,6 @@ kotlin {
                 jvmTarget = "1.8"
             }
         }
-    }
-
-    js {
-        nodejs {
-
-        }
-    }
-
-    wasmJs {
-        nodejs()
     }
 
     //TODO: Add wasmWasi benchmarks as soon as kx-benchmark supports the target
