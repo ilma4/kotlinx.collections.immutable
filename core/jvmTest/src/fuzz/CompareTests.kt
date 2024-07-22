@@ -8,6 +8,7 @@ package tests.fuzz
 import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import com.code_intelligence.jazzer.junit.FuzzTest
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.collections.immutable.toPersistentMap
 import org.junit.jupiter.api.Assertions.assertTrue
 import tests.fuzz.HistoryList.Companion.historyList
 
@@ -55,5 +56,23 @@ class CompareTests {
         }
         memorisingList.validateInvariants()
         memorisingList.validateArrayList()
+    }
+
+    @FuzzTest(maxDuration = "60s")
+    fun mapRandomOps(data: FuzzedDataProvider) {
+        val firstMap = data.consumeInts(1000)
+            .asSequence().chunked(2).filter { it.size == 2 }
+            .map { list -> list[0] to list[1] }
+            .toMap()
+
+        val memorisingMap = MemorisingMap(mutableListOf(firstMap.toPersistentMap()))
+
+        val opsNum = data.consumeInt(10, 1000)
+        repeat(opsNum) {
+            val op = data.consumeMapOperation(memorisingMap.last)
+            memorisingMap.applyOperation(op)
+        }
+        memorisingMap.validateInvariants()
+        memorisingMap.validateArrayList()
     }
 }
