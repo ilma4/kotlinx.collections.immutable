@@ -26,7 +26,12 @@ class MemorisingList(val history: MutableList<PersistentList<Int>>) {
         history.asSequence()
             .zipWithNext()
             .zip(operations.asSequence())
-            .forEach { (lists, operation) -> operation.validate(lists.first, lists.second) }
+            .forEach { (lists, operation) ->
+                operation.validateInvariants(
+                    lists.first,
+                    lists.second
+                )
+            }
     }
 
     fun validateArrayList() {
@@ -39,6 +44,17 @@ class MemorisingList(val history: MutableList<PersistentList<Int>>) {
                 operation.apply(list)
                 assertEquals(list, persList)
 //                assertTrue(list == persList)
+            }
+    }
+
+    fun validateReverse() {
+        history.asSequence()
+            .zipWithNext()
+            .zip(operations.asSequence())
+            .forEach { (pair, operation) ->
+                val (preList, postList) = pair
+                val reversed = operation.reverse(postList) ?: return@forEach
+                assertEquals(preList, reversed)
             }
     }
 }

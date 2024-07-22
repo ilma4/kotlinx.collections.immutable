@@ -21,6 +21,14 @@ data class Put(val key: Int, val value: Int) : MapOperation, EmptyOperation {
     override fun validate(preMap: Map<Int, Int>, postMap: Map<Int, Int>) {
         assertTrue(postMap[key] == value)
     }
+
+    override fun reverse(
+        preMap: PersistentMap<Int, Int>,
+        postMap: PersistentMap<Int, Int>
+    ): PersistentMap<Int, Int> {
+        if (preMap.containsKey(key)) return postMap.put(key, preMap[key]!!)
+        return postMap.remove(key)
+    }
 }
 
 data class Remove(val key: Int) : MapOperation {
@@ -33,6 +41,14 @@ data class Remove(val key: Int) : MapOperation {
     override fun validate(preMap: Map<Int, Int>, postMap: Map<Int, Int>) {
         assertTrue(!postMap.containsKey(key))
         assertTrue(postMap[key] == null)
+    }
+
+    override fun reverse(
+        preMap: PersistentMap<Int, Int>,
+        postMap: PersistentMap<Int, Int>
+    ): PersistentMap<Int, Int> {
+        if (preMap.containsKey(key)) return postMap.put(key, preMap[key]!!)
+        return postMap
     }
 }
 
@@ -47,6 +63,22 @@ data class PutAll(val keyValues: List<Pair<Int, Int>>) : MapOperation, EmptyOper
 
     override fun validate(preMap: Map<Int, Int>, postMap: Map<Int, Int>) {
         assertTrue(keyValues.associate { it }.all { (key, value) -> postMap[key] == value })
+    }
+
+    override fun reverse(
+        preMap: PersistentMap<Int, Int>,
+        postMap: PersistentMap<Int, Int>
+    ): PersistentMap<Int, Int> {
+        // TODO: can be optimized
+        var result = postMap
+        for ((key, _) in keyValues) {
+            result = if (preMap.contains(key)) {
+                result.put(key, preMap[key]!!)
+            } else {
+                result.remove(key)
+            }
+        }
+        return result
     }
 }
 

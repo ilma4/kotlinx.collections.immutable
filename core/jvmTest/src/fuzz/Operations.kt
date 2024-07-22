@@ -7,6 +7,7 @@ package tests.fuzz
 
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.PersistentMap
+import org.junit.jupiter.api.Assertions.assertTrue
 
 sealed interface EmptyOperation
 sealed interface ListOperation {
@@ -16,7 +17,7 @@ sealed interface ListOperation {
 
     fun apply(list: PersistentList<Int>): PersistentList<Int> = tryOr(list) {
         val next = list.applyInternal()
-        validate(list, next)
+        validateInvariants(list, next)
         return next
     }
 
@@ -27,7 +28,12 @@ sealed interface ListOperation {
     }
 
 
-    fun validate(preList: List<Int>, postList: List<Int>)
+    fun validateInvariants(preList: List<Int>, postList: List<Int>)
+
+    fun validateReverse(preList: PersistentList<Int>, postList: PersistentList<Int>) {
+        if (!canReverse) return
+        assertTrue(reverse(postList) == preList)
+    }
 
     fun reverse(list: PersistentList<Int>): PersistentList<Int>? =
         reverseOperation?.apply(list)
@@ -47,4 +53,6 @@ sealed interface MapOperation {
     fun apply(map: MutableMap<Int, Int>) = map.applyInternal()
 
     fun validate(preMap: Map<Int, Int>, postMap: Map<Int, Int>)
+
+    fun reverse(preMap: PersistentMap<Int, Int>, postMap: PersistentMap<Int, Int>): PersistentMap<Int, Int>?
 }

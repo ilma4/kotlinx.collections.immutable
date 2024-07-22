@@ -28,7 +28,7 @@ class MemorisingMap(val history: MutableList<PersistentMap<Int, Int>>) {
             .forEach { (lists, operation) -> operation.validate(lists.first, lists.second) }
     }
 
-    fun validateArrayList() {
+    fun validateStandardMap() {
         val map = history[0].toMutableMap()
         assertTrue(map == history[0])
         history.asSequence()
@@ -37,6 +37,15 @@ class MemorisingMap(val history: MutableList<PersistentMap<Int, Int>>) {
             .forEach { (persList, operation) ->
                 operation.apply(map)
                 assertEquals(map, persList)
+            }
+    }
+
+    fun validateReverse() {
+        history.asSequence().zipWithNext().zip(operations.asSequence())
+            .forEach { (maps, operation) ->
+                val (preMap, postMap) = maps
+                val reversed = operation.reverse(preMap, postMap)
+                assertEquals(preMap, reversed)
             }
     }
 }

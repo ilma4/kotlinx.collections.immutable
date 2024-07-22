@@ -26,7 +26,9 @@ data class Add(val element: Int) : ListOperation, EmptyOperation {
 
     override fun PersistentList<Int>.applyInternal(): PersistentList<Int> = this.add(element)
 
-    override fun validate(preList: List<Int>, postList: List<Int>) {
+    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
+        assertTrue(postList.last() == element)
+        assertTrue(preList.size + 1 == postList.size)
     }
 
     override val reverseOperation get() = RemoveLast
@@ -40,7 +42,7 @@ data class AddAt(val index: Int, val element: Int) : ListOperation, EmptyOperati
     override fun PersistentList<Int>.applyInternal(): PersistentList<Int> =
         this.add(index, element)
 
-    override fun validate(preList: List<Int>, postList: List<Int>) {
+    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
         require(postList.size == preList.size + 1)
         require(postList[index] == element)
     }
@@ -59,7 +61,7 @@ data class AddAll(val elements: Collection<Int>) : ListOperation, EmptyOperation
         this.addAll(elements.toList())
 
 
-    override fun validate(preList: List<Int>, postList: List<Int>) {
+    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
         require(postList.size == preList.size + elements.size)
         require(postList.subList(preList.size, postList.size) == elements.toList())
     }
@@ -73,7 +75,7 @@ data class AddAllAt(val index: Int, val elements: Collection<Int>) : ListOperati
     override fun PersistentList<Int>.applyInternal(): PersistentList<Int> =
         this.addAll(index, elements.toList())
 
-    override fun validate(preList: List<Int>, postList: List<Int>) {
+    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
         require(postList.size == preList.size + elements.size)
     }
 
@@ -89,7 +91,7 @@ data class RemoveAt(val index: Int) : ListOperation {
         this.removeAt(index)
 
 
-    override fun validate(preList: List<Int>, postList: List<Int>) {
+    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
         require(postList.size + 1 == preList.size)
     }
 }
@@ -103,9 +105,10 @@ data object Clear : ListOperation, EmptyOperation, MapOperation {
         return persistentListOf()
     }
 
-    override fun validate(preList: List<Int>, postList: List<Int>) {
+    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
         require(postList.isEmpty())
     }
+
 
     override fun PersistentMap<Int, Int>.applyInternal(): PersistentMap<Int, Int> =
         persistentMapOf()
@@ -118,6 +121,14 @@ data object Clear : ListOperation, EmptyOperation, MapOperation {
         assertTrue(postMap.isEmpty())
         assertTrue(postMap.keys.isEmpty())
     }
+
+    override fun reverse(
+        preMap: PersistentMap<Int, Int>,
+        postMap: PersistentMap<Int, Int>
+    ): PersistentMap<Int, Int> {
+        return postMap.putAll(preMap)
+    }
+
 }
 
 data class Set(val index: Int, val element: Int) : ListOperation {
@@ -129,7 +140,7 @@ data class Set(val index: Int, val element: Int) : ListOperation {
         return this.set(index, element)
     }
 
-    override fun validate(preList: List<Int>, postList: List<Int>) {
+    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
         require(postList[index] == element)
     }
 }
@@ -143,7 +154,7 @@ data object RemoveLast : ListOperation {
         return this.removeAt(this.lastIndex)
     }
 
-    override fun validate(preList: List<Int>, postList: List<Int>) {
+    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
         require(preList.subList(0, preList.lastIndex) == postList)
     }
 }

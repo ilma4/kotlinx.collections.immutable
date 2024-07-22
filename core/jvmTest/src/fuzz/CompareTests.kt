@@ -45,7 +45,7 @@ class CompareTests {
     }
 
     @FuzzTest(maxDuration = "60s")
-    fun randomOps(data: FuzzedDataProvider) {
+    fun listRandomOps(data: FuzzedDataProvider) {
         val first = data.consumeInts(1000).toList()
         val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
 
@@ -56,6 +56,7 @@ class CompareTests {
         }
         memorisingList.validateInvariants()
         memorisingList.validateArrayList()
+        memorisingList.validateReverse()
     }
 
     @FuzzTest(maxDuration = "60s")
@@ -73,6 +74,7 @@ class CompareTests {
             memorisingMap.applyOperation(op)
         }
         memorisingMap.validateInvariants()
-        memorisingMap.validateArrayList()
+        memorisingMap.validateStandardMap()
+        memorisingMap.validateReverse()
     }
 }
