@@ -7,6 +7,7 @@ package tests.fuzz
 
 import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import com.code_intelligence.jazzer.junit.FuzzTest
+import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -54,9 +55,9 @@ class CompareTests {
             val op = data.consumeListOperation(memorisingList.last)
             memorisingList.applyOperation(op)
         }
-        memorisingList.validateInvariants()
-        memorisingList.validateArrayList()
-        memorisingList.validateReverse()
+        if (validateInvariants) memorisingList.validateInvariants()
+        if (validateReplay) memorisingList.validateArrayList()
+        if (validateReverse) memorisingList.validateReverse()
     }
 
     @FuzzTest(maxDuration = "60s")
@@ -73,8 +74,30 @@ class CompareTests {
             val op = data.consumeMapOperation(memorisingMap.last)
             memorisingMap.applyOperation(op)
         }
-        memorisingMap.validateInvariants()
-        memorisingMap.validateStandardMap()
-        memorisingMap.validateReverse()
+
+        if (validateInvariants) memorisingMap.validateInvariants()
+        if (validateReplay) memorisingMap.validateStandardMap()
+        if (validateReverse) memorisingMap.validateReverse()
+    }
+
+
+    @FuzzTest(maxDuration = "60s")
+    fun hashMapRandomOps(data: FuzzedDataProvider) {
+        val firstMap = data.consumeInts(1000)
+            .asSequence().chunked(2).filter { it.size == 2 }
+            .map { list -> list[0] to list[1] }
+            .toMap()
+
+        val memorisingMap = MemorisingMap(mutableListOf(firstMap.toPersistentHashMap()))
+
+        val opsNum = data.consumeInt(10, 1000)
+        repeat(opsNum) {
+            val op = data.consumeMapOperation(memorisingMap.last)
+            memorisingMap.applyOperation(op)
+        }
+
+        if (validateInvariants) memorisingMap.validateInvariants()
+        if (validateReplay) memorisingMap.validateStandardMap()
+        if (validateReverse) memorisingMap.validateReverse()
     }
 }

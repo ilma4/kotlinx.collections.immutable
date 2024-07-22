@@ -26,3 +26,14 @@ inline fun <T> tryOrNull(block: () -> T): T? = try {
 }
 
 inline fun <T> tryOr(default: T, block: () -> T): T = tryOrNull(block) ?: default
+
+private fun Boolean.toEnabled() = if (this) "enabled" else "disabled"
+
+val validateInvariants: Boolean =
+    (System.getenv("INVARIANTS") != "0").also { println("INVARIANTS check ${it.toEnabled()}") }
+
+val validateReverse: Boolean =
+    (System.getenv("REVERSE") != "0").also { println("REVERSE check ${it.toEnabled()}") }
+
+val validateReplay: Boolean =
+    (System.getenv("REPLAY") != "0").also { println("REPLAY check ${it.toEnabled()}") }
