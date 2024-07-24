@@ -63,7 +63,10 @@ kotlin {
 
 tasks {
     named("jvmTest", Test::class) {
-        maxHeapSize = "2048m"
+//        maxHeapSize = "4096m"
+        maxHeapSize = "8192m"
+//        maxHeapSize = "16384m"
+//        maxHeapSize = "32768m"
         useJUnitPlatform()
         testLogging.showStandardStreams = true
     }

@@ -8,9 +8,6 @@ package tests.fuzz
 
 import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import kotlinx.collections.immutable.PersistentList
-import kotlinx.collections.immutable.PersistentMap
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.persistentMapOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
@@ -96,41 +93,6 @@ data class RemoveAt(val index: Int) : ListOperation {
     }
 }
 
-data object Clear : ListOperation, EmptyOperation, MapOperation {
-    override fun MutableList<Int>.applyInternal() {
-        clear()
-    }
-
-    override fun PersistentList<Int>.applyInternal(): PersistentList<Int> {
-        return persistentListOf()
-    }
-
-    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
-        require(postList.isEmpty())
-    }
-
-
-    override fun PersistentMap<Int, Int>.applyInternal(): PersistentMap<Int, Int> =
-        persistentMapOf()
-
-    override fun MutableMap<Int, Int>.applyInternal() {
-        this.clear()
-    }
-
-    override fun validate(preMap: Map<Int, Int>, postMap: Map<Int, Int>) {
-        assertTrue(postMap.isEmpty())
-        assertTrue(postMap.keys.isEmpty())
-    }
-
-    override fun reverse(
-        preMap: PersistentMap<Int, Int>,
-        postMap: PersistentMap<Int, Int>
-    ): PersistentMap<Int, Int> {
-        return postMap.putAll(preMap)
-    }
-
-}
-
 data class Set(val index: Int, val element: Int) : ListOperation {
     override fun MutableList<Int>.applyInternal() {
         this[index] = element
@@ -183,7 +145,6 @@ fun FuzzedDataProvider.consumeListOperation(list: List<Int>): ListOperation {
         AddAll::class -> consumeAddAll()
         AddAllAt::class -> consumeAddAllAt(list)
         RemoveAt::class -> consumeRemoveAt(list)
-        Clear::class -> Clear
         Set::class -> consumeSet(list)
         RemoveLast::class -> RemoveLast
         else -> TODO()

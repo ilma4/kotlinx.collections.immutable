@@ -37,3 +37,9 @@ val validateReverse: Boolean =
 
 val validateReplay: Boolean =
     (System.getenv("REPLAY") != "0").also { println("REPLAY check ${it.toEnabled()}") }
+
+val validateBuilder: Boolean =
+    (System.getenv("BUILDER") != "0").also { println("BUILDER check ${it.toEnabled()}") }
+
+val initSize: Int =
+    (System.getenv("INIT_SIZE")?.toIntOrNull() ?: 100).also { println("INIT_SIZE: $it") }

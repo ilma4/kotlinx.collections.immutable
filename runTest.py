@@ -4,6 +4,7 @@ import sys
 import subprocess
 import os
 import datetime
+import shutil
 
 
 def get_test_command(testName):
@@ -20,6 +21,8 @@ def main():
     testName = sys.argv[1]
     subprocess.run("pwd")
     print(testName)
+
+    shutil.rmtree("./core/.cifuzz-corpus")
 
     command = get_test_command(testName)
     print(command)

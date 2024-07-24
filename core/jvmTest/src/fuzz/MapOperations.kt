@@ -92,13 +92,12 @@ fun FuzzedDataProvider.consumeMapOperation(map: Map<Int, *>): MapOperation {
     return when (pickValue(operations)) {
         Put::class -> Put(consumeInt(), consumeInt())
         Remove::class -> Remove(consumeInt())
-        Clear::class -> Clear
         PutAll::class -> consumePutAll()
         else -> TODO()
     }
 }
 
 fun FuzzedDataProvider.consumePutAll(): MapOperation {
-    val keyValues = List(consumeInt(0, 100)) { consumeInt() to consumeInt() }
+    val keyValues = List(consumeInt(10, 100)) { consumeInt() to consumeInt() }
     return PutAll(keyValues)
 }

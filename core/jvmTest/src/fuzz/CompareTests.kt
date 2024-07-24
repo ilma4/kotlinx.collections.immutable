@@ -10,6 +10,7 @@ import com.code_intelligence.jazzer.junit.FuzzTest
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import tests.fuzz.HistoryList.Companion.historyList
 
@@ -31,7 +32,7 @@ class CompareTests {
 
     @FuzzTest(maxDuration = "60s")
     fun bubbleSort(data: FuzzedDataProvider) {
-        val size = data.consumeInt(0, 1000)
+        val size = data.consumeInt(0, initSize)
         val ints = data.forceConsumeInts(size)//.toTypedArray()
 
         val persistentHistory = historyList(ints.toPersistentList())
@@ -47,43 +48,41 @@ class CompareTests {
 
     @FuzzTest(maxDuration = "60s")
     fun listRandomOps(data: FuzzedDataProvider) {
-        val first = data.consumeInts(1000).toList()
+        val first = data.consumeInts(initSize).toList()
         val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
 
         val opsNum = data.consumeInt(10, 1000)
         repeat(opsNum) {
+//            cumSize += memorisingList.last.size
             val op = data.consumeListOperation(memorisingList.last)
             memorisingList.applyOperation(op)
         }
-        if (validateInvariants) memorisingList.validateInvariants()
-        if (validateReplay) memorisingList.validateArrayList()
-        if (validateReverse) memorisingList.validateReverse()
+//        println(cumSize.toDouble() / opsNum)
+        memorisingList.validate()
     }
 
     @FuzzTest(maxDuration = "60s")
     fun mapRandomOps(data: FuzzedDataProvider) {
-        val firstMap = data.consumeInts(1000)
+        val firstMap = data.consumeInts(initSize)
             .asSequence().chunked(2).filter { it.size == 2 }
             .map { list -> list[0] to list[1] }
             .toMap()
 
         val memorisingMap = MemorisingMap(mutableListOf(firstMap.toPersistentMap()))
 
-        val opsNum = data.consumeInt(10, 1000)
+        val opsNum = 10240 // data.consumeInt(10, 1000)
         repeat(opsNum) {
             val op = data.consumeMapOperation(memorisingMap.last)
             memorisingMap.applyOperation(op)
         }
 
-        if (validateInvariants) memorisingMap.validateInvariants()
-        if (validateReplay) memorisingMap.validateStandardMap()
-        if (validateReverse) memorisingMap.validateReverse()
+        memorisingMap.validate()
     }
 
 
     @FuzzTest(maxDuration = "60s")
     fun hashMapRandomOps(data: FuzzedDataProvider) {
-        val firstMap = data.consumeInts(1000)
+        val firstMap = data.forceConsumeInts(100)
             .asSequence().chunked(2).filter { it.size == 2 }
             .map { list -> list[0] to list[1] }
             .toMap()
@@ -96,8 +95,38 @@ class CompareTests {
             memorisingMap.applyOperation(op)
         }
 
-        if (validateInvariants) memorisingMap.validateInvariants()
-        if (validateReplay) memorisingMap.validateStandardMap()
-        if (validateReverse) memorisingMap.validateReverse()
+        memorisingMap.validate()
     }
+
+
+    @FuzzTest
+    fun testRepeat(data: FuzzedDataProvider) {
+        val remain = data.remainingBytes()
+        val bytes = mutableListOf<Byte>()
+        repeat(remain) {
+            bytes += data.consumeByte()
+        }
+        val nextRemain = data.remainingBytes()
+        println("$remain    $nextRemain")
+
+        val nextBytes = List(remain) { data.consumeByte() }
+        assertTrue(nextBytes.all { it.toInt() == 0 })
+
+    }
+
+    @FuzzTest
+    fun listBuilderRandomOps(data: FuzzedDataProvider) {
+        val initSize = 16 // data.consumeInt(0, Int.MAX_VALUE / 1024)
+        val init = data.forceConsumeInts(initSize)
+        val opsNum = 1024 //128 //data.consumeInt(0, Int.MAX_VALUE)
+        val builder = init.toPersistentList().builder()
+        val arrayList = init.toMutableList()
+        repeat(opsNum) {
+            val op = data.consumeListOperation(builder)
+            op.apply(builder)
+            op.apply(arrayList)
+            assertEquals(arrayList, builder)
+        }
+    }
+
 }

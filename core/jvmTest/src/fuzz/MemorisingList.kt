@@ -7,7 +7,6 @@ package tests.fuzz
 
 import kotlinx.collections.immutable.PersistentList
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
 
 
 class MemorisingList(val history: MutableList<PersistentList<Int>>) {
@@ -16,45 +15,73 @@ class MemorisingList(val history: MutableList<PersistentList<Int>>) {
 
     val operations: MutableList<ListOperation> = mutableListOf()
 
+    val builder = history[0].builder()
+
     fun applyOperation(operation: ListOperation) {
         val nextList = operation.apply(last)
         operations += operation
         history += nextList
     }
 
-    fun validateInvariants() {
-        history.asSequence()
-            .zipWithNext()
-            .zip(operations.asSequence())
-            .forEach { (lists, operation) ->
-                operation.validateInvariants(
-                    lists.first,
-                    lists.second
-                )
-            }
+    fun validate() {
+        val arrayList = history[0].toMutableList()
+
+        assertEquals(history[0], arrayList)
+        assertEquals(history[0], builder)
+
+        for (i in 0..operations.lastIndex) {
+            val preList = history[i]
+            val postList = history[i + 1]
+            val op = operations[i]
+
+            validateInvariants(preList, postList, op)
+            validateReverse(preList, postList, op)
+            validateReplay(arrayList, postList, op)
+            validateBuilder(builder, postList, op)
+        }
+        builder.clear()
+        builder.addAll(history.first())
     }
 
-    fun validateArrayList() {
-        val list = history[0].toMutableList()
-        assertTrue(list == history[0])
-        history.asSequence()
-            .drop(1)
-            .zip(operations.asSequence())
-            .forEach { (persList, operation) ->
-                operation.apply(list)
-                assertEquals(list, persList)
-//                assertTrue(list == persList)
-            }
+    private fun validateReplay(
+        arrayList: MutableList<Int>,
+        postList: PersistentList<Int>,
+        op: ListOperation
+    ) {
+        if (!validateReplay) return
+        op.apply(arrayList)
+        assertEquals(postList, arrayList)
+
     }
 
-    fun validateReverse() {
-        history.asSequence()
-            .zipWithNext()
-            .zip(operations.asSequence())
-            .forEach { (pair, operation) ->
-                val (preList, postList) = pair
-                val reversed = operation.reverse(postList) ?: return@forEach
-                assertEquals(preList, reversed)
-            }
+    private fun validateReverse(
+        preList: PersistentList<Int>,
+        postList: PersistentList<Int>,
+        op: ListOperation
+    ) {
+        if (!validateReverse) return
+        val reversed = op.reverse(postList) ?: return
+        assertEquals(preList, reversed)
     }
+
+
+    private fun validateInvariants(
+        preList: PersistentList<Int>,
+        postList: PersistentList<Int>,
+        operation: ListOperation
+    ) {
+        if (!validateInvariants) return
+        operation.validateInvariants(preList, postList)
+    }
+
+    private fun validateBuilder(
+        builder: MutableList<Int>,
+        postList: PersistentList<Int>,
+        op: ListOperation
+    ) {
+        if (!validateBuilder) return
+        op.apply(builder)
+        assertEquals(postList, builder)
+    }
+
 }
