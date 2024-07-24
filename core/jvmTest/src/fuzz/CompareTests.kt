@@ -16,116 +16,130 @@ import tests.fuzz.HistoryList.Companion.historyList
 
 class CompareTests {
 
-    private fun bubbleSort(historyList: HistoryList<Int>) {
-        var done = false
-        while (!done) {
-            done = true
-            val list = historyList.history.last()
-            for (i in 0..<list.lastIndex) {
-                if (list[i] > list[i + 1]) {
-                    done = false
-                    historyList.history.add(historyList.history.last().persistentSwap(i, i + 1))
+
+    class bubbleSort {
+        private fun bubbleSort(historyList: HistoryList<Int>) {
+            var done = false
+            while (!done) {
+                done = true
+                val list = historyList.history.last()
+                for (i in 0..<list.lastIndex) {
+                    if (list[i] > list[i + 1]) {
+                        done = false
+                        historyList.history.add(historyList.history.last().persistentSwap(i, i + 1))
+                    }
                 }
             }
         }
+
+        @FuzzTest(maxDuration = "60s")
+        fun bubbleSort(data: FuzzedDataProvider) {
+            val size = data.consumeInt(0, initSize)
+            val ints = data.forceConsumeInts(size)//.toTypedArray()
+
+            val persistentHistory = historyList(ints.toPersistentList())
+            val listHistory = historyList(ints.toMutableList())
+
+            listOf(1, 2, 3).sorted()
+
+            bubbleSort(persistentHistory)
+            bubbleSort(listHistory)
+
+            assertTrue(persistentHistory == listHistory)
+        }
     }
 
-    @FuzzTest(maxDuration = "60s")
-    fun bubbleSort(data: FuzzedDataProvider) {
-        val size = data.consumeInt(0, initSize)
-        val ints = data.forceConsumeInts(size)//.toTypedArray()
+    class listRandomOps {
+        @FuzzTest(maxDuration = "60s")
+        fun listRandomOps(data: FuzzedDataProvider) {
+            val first = data.consumeInts(initSize).toList()
+            val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
 
-        val persistentHistory = historyList(ints.toPersistentList())
-        val listHistory = historyList(ints.toMutableList())
-
-        listOf(1, 2, 3).sorted()
-
-        bubbleSort(persistentHistory)
-        bubbleSort(listHistory)
-
-        assertTrue(persistentHistory == listHistory)
-    }
-
-    @FuzzTest(maxDuration = "60s")
-    fun listRandomOps(data: FuzzedDataProvider) {
-        val first = data.consumeInts(initSize).toList()
-        val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
-
-        val opsNum = data.consumeInt(10, 1000)
-        repeat(opsNum) {
+            val opsNum = data.consumeInt(10, 1000)
+            repeat(opsNum) {
 //            cumSize += memorisingList.last.size
-            val op = data.consumeListOperation(memorisingList.last)
-            memorisingList.applyOperation(op)
-        }
+                val op = data.consumeListOperation(memorisingList.last)
+                memorisingList.applyOperation(op)
+            }
 //        println(cumSize.toDouble() / opsNum)
-        memorisingList.validate()
-    }
-
-    @FuzzTest(maxDuration = "60s")
-    fun mapRandomOps(data: FuzzedDataProvider) {
-        val firstMap = data.consumeInts(initSize)
-            .asSequence().chunked(2).filter { it.size == 2 }
-            .map { list -> list[0] to list[1] }
-            .toMap()
-
-        val memorisingMap = MemorisingMap(mutableListOf(firstMap.toPersistentMap()))
-
-        val opsNum = 10240 // data.consumeInt(10, 1000)
-        repeat(opsNum) {
-            val op = data.consumeMapOperation(memorisingMap.last)
-            memorisingMap.applyOperation(op)
+            memorisingList.validate()
         }
-
-        memorisingMap.validate()
     }
 
 
-    @FuzzTest(maxDuration = "60s")
-    fun hashMapRandomOps(data: FuzzedDataProvider) {
-        val firstMap = data.forceConsumeInts(100)
-            .asSequence().chunked(2).filter { it.size == 2 }
-            .map { list -> list[0] to list[1] }
-            .toMap()
+    class mapRandomOps {
+        @FuzzTest(maxDuration = "60s")
+        fun mapRandomOps(data: FuzzedDataProvider) {
+            val firstMap = data.consumeInts(initSize)
+                .asSequence().chunked(2).filter { it.size == 2 }
+                .map { list -> list[0] to list[1] }
+                .toMap()
 
-        val memorisingMap = MemorisingMap(mutableListOf(firstMap.toPersistentHashMap()))
+            val memorisingMap = MemorisingMap(mutableListOf(firstMap.toPersistentMap()))
 
-        val opsNum = data.consumeInt(10, 1000)
-        repeat(opsNum) {
-            val op = data.consumeMapOperation(memorisingMap.last)
-            memorisingMap.applyOperation(op)
+            val opsNum = 10240 // data.consumeInt(10, 1000)
+            repeat(opsNum) {
+                val op = data.consumeMapOperation(memorisingMap.last)
+                memorisingMap.applyOperation(op)
+            }
+
+            memorisingMap.validate()
         }
-
-        memorisingMap.validate()
     }
 
 
-    @FuzzTest
-    fun testRepeat(data: FuzzedDataProvider) {
-        val remain = data.remainingBytes()
-        val bytes = mutableListOf<Byte>()
-        repeat(remain) {
-            bytes += data.consumeByte()
+    class hashMapRandomOps {
+        @FuzzTest(maxDuration = "60s")
+        fun hashMapRandomOps(data: FuzzedDataProvider) {
+            val firstMap = data.forceConsumeInts(100)
+                .asSequence().chunked(2).filter { it.size == 2 }
+                .map { list -> list[0] to list[1] }
+                .toMap()
+
+            val memorisingMap = MemorisingMap(mutableListOf(firstMap.toPersistentHashMap()))
+
+            val opsNum = data.consumeInt(10, 1000)
+            repeat(opsNum) {
+                val op = data.consumeMapOperation(memorisingMap.last)
+                memorisingMap.applyOperation(op)
+            }
+
+            memorisingMap.validate()
         }
-        val nextRemain = data.remainingBytes()
-        println("$remain    $nextRemain")
-
-        val nextBytes = List(remain) { data.consumeByte() }
-        assertTrue(nextBytes.all { it.toInt() == 0 })
-
     }
 
-    @FuzzTest
-    fun listBuilderRandomOps(data: FuzzedDataProvider) {
-        val initSize = 16 // data.consumeInt(0, Int.MAX_VALUE / 1024)
-        val init = data.forceConsumeInts(initSize)
-        val opsNum = 1024 //128 //data.consumeInt(0, Int.MAX_VALUE)
-        val builder = init.toPersistentList().builder()
-        val arrayList = init.toMutableList()
-        repeat(opsNum) {
-            val op = data.consumeListOperation(builder)
-            op.apply(builder)
-            op.apply(arrayList)
-            assertEquals(arrayList, builder)
+
+    class testRepeat {
+        @FuzzTest
+        fun testRepeat(data: FuzzedDataProvider) {
+            val remain = data.remainingBytes()
+            val bytes = mutableListOf<Byte>()
+            repeat(remain) {
+                bytes += data.consumeByte()
+            }
+            val nextRemain = data.remainingBytes()
+            println("$remain    $nextRemain")
+
+            val nextBytes = List(remain) { data.consumeByte() }
+            assertTrue(nextBytes.all { it.toInt() == 0 })
+
+        }
+    }
+
+    class listBuilderRandomOps {
+        @FuzzTest(maxDuration = "60s")
+        fun listBuilderRandomOps(data: FuzzedDataProvider) {
+            val initSize = 16 // data.consumeInt(0, Int.MAX_VALUE / 1024)
+            val init = data.forceConsumeInts(initSize)
+            val opsNum = 1024 //128 //data.consumeInt(0, Int.MAX_VALUE)
+            val builder = init.toPersistentList().builder()
+            val arrayList = init.toMutableList()
+            repeat(opsNum) {
+                val op = data.consumeListOperation(builder)
+                op.apply(builder)
+                op.apply(arrayList)
+                assertEquals(arrayList, builder)
+            }
         }
     }
 

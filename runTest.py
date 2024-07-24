@@ -18,20 +18,22 @@ def get_test_command(testName):
 
 
 def main():
-    testName = sys.argv[1]
+    test_name = sys.argv[1]
     subprocess.run("pwd")
-    print(testName)
+    print(test_name)
 
-    shutil.rmtree("./core/.cifuzz-corpus")
+    corpus_dir = "./core/.cifuzz-corpus/" + test_name
+    if os.path.exists(corpus_dir):
+        shutil.rmtree("./core/.cifuzz-corpus")
 
-    command = get_test_command(testName)
+    command = get_test_command(test_name)
     print(command)
 
     my_env = os.environ.copy()
     my_env["JAZZER_FUZZ"] = "1"
 
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d--%H-%M-%S")
-    f = open(timestamp + "--" + testName, "w")
+    f = open(timestamp + "--" + test_name, "w")
     subprocess.run(command, env=my_env, stderr=subprocess.STDOUT, stdout=f)
     f.close()
 
