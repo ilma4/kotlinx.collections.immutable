@@ -48,26 +48,28 @@ class CompareTests {
         }
     }
 
-    class listRandomOps {
+    class persistentVectorRandomOps {
         @FuzzTest(maxDuration = "2h")
-        fun listRandomOps(data: FuzzedDataProvider) {
-            val first = data.consumeInts(initSize).toList()
+        fun persistentVectorRandomOps(data: FuzzedDataProvider) {
+            val first = data.forceConsumeInts(initSize).toList()
             val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
 
             memorisingList.last.iterator()
 
             val opsNum = data.consumeInt(10, 1000)
             repeat(opsNum) {
-//            cumSize += memorisingList.last.size
                 val op = data.consumeListOperation(memorisingList.last)
                 memorisingList.applyOperation(op)
+                if (memorisingList.last.size <= MAX_BUFFER_SIZE) {
+                    memorisingList.history.removeLast()
+                    memorisingList.operations.removeLast()
+                }
             }
-//        println(cumSize.toDouble() / opsNum)
             memorisingList.validate()
         }
     }
 
-    class smallPersistentVectorRandomOps{
+    class smallPersistentVectorRandomOps {
         @FuzzTest(maxDuration = "2h")
         fun listRandomOps(data: FuzzedDataProvider) {
             val first = data.forceConsumeInts(2).toList()
@@ -77,7 +79,7 @@ class CompareTests {
             repeat(opsNum) {
                 val op = data.consumeListOperation(memorisingList.last)
                 memorisingList.applyOperation(op)
-                if (memorisingList.last.size > MAX_BUFFER_SIZE){
+                if (memorisingList.last.size > MAX_BUFFER_SIZE) {
                     memorisingList.history.removeLast()
                     memorisingList.operations.removeLast()
                 }
