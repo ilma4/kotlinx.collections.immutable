@@ -7,9 +7,7 @@ package tests.fuzz
 
 import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import com.code_intelligence.jazzer.junit.FuzzTest
-import kotlinx.collections.immutable.toPersistentHashMap
-import kotlinx.collections.immutable.toPersistentList
-import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.collections.immutable.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import tests.fuzz.HistoryList.Companion.historyList
@@ -145,9 +143,10 @@ class CompareTests {
         }
     }
 
-    class mapBuilderRandomOps {
+
+    class orderedMapBuilderRandomOps {
         @FuzzTest(maxDuration = "2h")
-        fun mapBuilderRandomOps(data: FuzzedDataProvider) {
+        fun orderedMapBuilderRandomOps(data: FuzzedDataProvider) {
             val firstMap = data.forceConsumeInts(100)
                 .asSequence().chunked(2).filter { it.size == 2 }
                 .map { list -> list[0] to list[1] }
@@ -168,4 +167,29 @@ class CompareTests {
         }
     }
 
+
+    class hashMapBuilderRandomOps {
+        @FuzzTest(maxDuration = "2h")
+        fun hashMapBuilderRandomOps(data: FuzzedDataProvider) {
+            val firstMap = data.forceConsumeInts(100)
+                .asSequence().chunked(2).filter { it.size == 2 }
+                .map { list -> list[0] to list[1] }
+                .toMap()
+
+            val builder = persistentHashMapOf<Int, Int>().builder().apply { putAll(firstMap) }
+            val hashMap = hashMapOf<Int, Int>().apply { putAll(firstMap) }
+
+            assertEquals(hashMap, builder)
+
+            val opsNum = data.consumeInt(10, 1000)
+            val ops = mutableListOf<MapOperation>()
+            repeat(opsNum) {
+                val op = data.consumeMapOperation(builder)
+                ops += op
+                op.apply(builder)
+                op.apply(hashMap)
+                assertEquals(hashMap, builder)
+            }
+        }
+    }
 }
