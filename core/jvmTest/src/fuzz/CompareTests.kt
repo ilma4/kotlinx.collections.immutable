@@ -32,7 +32,7 @@ class CompareTests {
             }
         }
 
-        @FuzzTest(maxDuration = "60s")
+        @FuzzTest(maxDuration = "2h")
         fun bubbleSort(data: FuzzedDataProvider) {
             val size = data.consumeInt(0, initSize)
             val ints = data.forceConsumeInts(size)
@@ -50,7 +50,7 @@ class CompareTests {
     }
 
     class listRandomOps {
-        @FuzzTest(maxDuration = "60s")
+        @FuzzTest(maxDuration = "2h")
         fun listRandomOps(data: FuzzedDataProvider) {
             val first = data.consumeInts(initSize).toList()
             val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
@@ -70,7 +70,7 @@ class CompareTests {
 
 
     class mapRandomOps {
-        @FuzzTest(maxDuration = "60s")
+        @FuzzTest(maxDuration = "2h")
         fun mapRandomOps(data: FuzzedDataProvider) {
             val firstMap = data.consumeInts(initSize)
                 .asSequence().chunked(2).filter { it.size == 2 }
@@ -91,7 +91,7 @@ class CompareTests {
 
 
     class hashMapRandomOps {
-        @FuzzTest(maxDuration = "60s")
+        @FuzzTest(maxDuration = "2h")
         fun hashMapRandomOps(data: FuzzedDataProvider) {
             val firstMap = data.forceConsumeInts(100)
                 .asSequence().chunked(2).filter { it.size == 2 }
@@ -129,7 +129,7 @@ class CompareTests {
     }
 
     class listBuilderRandomOps {
-        @FuzzTest(maxDuration = "60s")
+        @FuzzTest(maxDuration = "2h")
         fun listBuilderRandomOps(data: FuzzedDataProvider) {
             val initSize = 16 // data.consumeInt(0, Int.MAX_VALUE / 1024)
             val init = data.forceConsumeInts(initSize)
