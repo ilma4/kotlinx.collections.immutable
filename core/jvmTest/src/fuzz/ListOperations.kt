@@ -8,6 +8,7 @@ package tests.fuzz
 
 import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import kotlinx.collections.immutable.PersistentList
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import kotlin.reflect.KClass
 import kotlin.reflect.full.isSubclassOf
@@ -121,8 +122,25 @@ data object RemoveLast : ListOperation {
     }
 }
 
+data class RemoveAllPredicate(val values: kotlin.collections.Set<Int>) : ListOperation {
+    override fun PersistentList<Int>.applyInternal(): PersistentList<Int> {
+        return removeAll { values.contains(it) }
+    }
+
+    override fun MutableList<Int>.applyInternal() {
+        removeAll { values.contains(it) }
+    }
+
+    override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
+        assertEquals(-1, postList.indexOfFirst{ values.contains(it) })
+    }
+
+}
+
 
 private val LIST_OPERATIONS = ListOperation::class.sealedSubclasses
+//private val LIST_OPERATIONS = listOf(AddAll::class, RemoveAllPredicate::class)
+
 private val EMPTY_LIST_OPERATIONS =
     LIST_OPERATIONS.filter { it.isSubclassOf(EmptyOperation::class) }
 
@@ -139,15 +157,16 @@ fun FuzzedDataProvider.consumeAddIndex(list: List<*>): Int = consumeInt(0, list.
 fun FuzzedDataProvider.consumeListOperation(list: List<Int>): ListOperation {
     val operations = if (list.isEmpty()) EMPTY_LIST_OPERATIONS else LIST_OPERATIONS
 
-    return when (pickValue(operations)) {
+    return when (val op = pickValue(operations)) {
         Add::class -> consumeAdd()
         AddAt::class -> consumeAddAt(list)
         AddAll::class -> consumeAddAll()
         AddAllAt::class -> consumeAddAllAt(list)
         RemoveAt::class -> consumeRemoveAt(list)
+        RemoveAllPredicate::class -> RemoveAllPredicate(setOf(pickValue(list), consumeInt()))
         Set::class -> consumeSet(list)
         RemoveLast::class -> RemoveLast
-        else -> TODO()
+        else -> TODO("can't generate $op")
     }
 }
 

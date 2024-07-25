@@ -8,6 +8,7 @@ package tests.fuzz
 import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import com.code_intelligence.jazzer.junit.FuzzTest
 import kotlinx.collections.immutable.*
+import kotlinx.collections.immutable.implementations.immutableList.MAX_BUFFER_SIZE
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import tests.fuzz.HistoryList.Companion.historyList
@@ -64,6 +65,26 @@ class CompareTests {
 //        println(cumSize.toDouble() / opsNum)
             memorisingList.validate()
         }
+    }
+
+    class smallPersistentVectorRandomOps{
+        @FuzzTest(maxDuration = "2h")
+        fun listRandomOps(data: FuzzedDataProvider) {
+            val first = data.forceConsumeInts(2).toList()
+            val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
+
+            val opsNum = 100 // data.consumeInt(10, 1000)
+            repeat(opsNum) {
+                val op = data.consumeListOperation(memorisingList.last)
+                memorisingList.applyOperation(op)
+                if (memorisingList.last.size > MAX_BUFFER_SIZE){
+                    memorisingList.history.removeLast()
+                    memorisingList.operations.removeLast()
+                }
+            }
+            memorisingList.validate()
+        }
+
     }
 
 
