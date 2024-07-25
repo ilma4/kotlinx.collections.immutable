@@ -35,7 +35,7 @@ class CompareTests {
         @FuzzTest(maxDuration = "60s")
         fun bubbleSort(data: FuzzedDataProvider) {
             val size = data.consumeInt(0, initSize)
-            val ints = data.forceConsumeInts(size)//.toTypedArray()
+            val ints = data.forceConsumeInts(size)
 
             val persistentHistory = historyList(ints.toPersistentList())
             val listHistory = historyList(ints.toMutableList())
@@ -54,6 +54,8 @@ class CompareTests {
         fun listRandomOps(data: FuzzedDataProvider) {
             val first = data.consumeInts(initSize).toList()
             val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
+
+            memorisingList.last.iterator()
 
             val opsNum = data.consumeInt(10, 1000)
             repeat(opsNum) {
@@ -139,6 +141,29 @@ class CompareTests {
                 op.apply(builder)
                 op.apply(arrayList)
                 assertEquals(arrayList, builder)
+            }
+        }
+    }
+
+    class mapBuilderRandomOps {
+        @FuzzTest(maxDuration = "2h")
+        fun mapBuilderRandomOps(data: FuzzedDataProvider) {
+            val firstMap = data.forceConsumeInts(100)
+                .asSequence().chunked(2).filter { it.size == 2 }
+                .map { list -> list[0] to list[1] }
+                .toMap()
+
+            val builder = firstMap.toPersistentMap().builder()
+            val hashMap = firstMap.toMutableMap()
+
+            assertEquals(hashMap, builder)
+
+            val opsNum = data.consumeInt(10, 1000)
+            repeat(opsNum) {
+                val op = data.consumeMapOperation(builder)
+                op.apply(builder)
+                op.apply(hashMap)
+                assertEquals(hashMap, builder)
             }
         }
     }
