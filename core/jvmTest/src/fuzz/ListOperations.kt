@@ -118,7 +118,7 @@ data object RemoveLast : ListOperation {
     }
 
     override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
-        require(preList.subList(0, preList.lastIndex) == postList)
+        assertEquals(preList.subList(0, preList.lastIndex), postList)
     }
 }
 
@@ -132,7 +132,7 @@ data class RemoveAllPredicate(val values: kotlin.collections.Set<Int>) : ListOpe
     }
 
     override fun validateInvariants(preList: List<Int>, postList: List<Int>) {
-        assertEquals(-1, postList.indexOfFirst{ values.contains(it) })
+        assertEquals(-1, postList.indexOfFirst { values.contains(it) })
     }
 
 }
