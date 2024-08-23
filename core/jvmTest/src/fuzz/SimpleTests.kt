@@ -9,7 +9,7 @@ package tests.fuzz
 
 import com.code_intelligence.jazzer.api.FuzzedDataProvider
 import com.code_intelligence.jazzer.junit.FuzzTest
-import com.code_intelligence.jazzer.mutation.annotation.NotNull
+//import com.code_intelligence.jazzer.mutation.annotation.NotNull
 import kotlinx.collections.immutable.*
 import org.junit.jupiter.api.Assertions.assertTrue
 
@@ -126,7 +126,7 @@ class SimpleTests {
 //    }
 
     @FuzzTest(maxDuration = "30m")
-    fun lolPlatform(@NotNull list: List<Int>?) = ignoreExceptions {
+    fun lolPlatform(list: List<Int>?) = ignoreExceptions {
         if (list == null) return
         val builder = list.toPersistentList().builder()
         val chunked = builder.chunked(10)
@@ -142,7 +142,7 @@ class SimpleTests {
     }
 
     @FuzzTest(maxDuration = "60s")
-    fun bubbleSort(@NotNull list: IntArray?) = ignoreExceptions {
+    fun bubbleSort(list: IntArray?) = ignoreExceptions {
         if (list == null) {
             System.err.println("got null")
             return
@@ -288,7 +288,7 @@ class SimpleTests {
     }
 
     @FuzzTest(maxDuration = "30m")
-    fun nullTestAnnotation(@NotNull eventInt: EvenInt?) {
+    fun nullTestAnnotation(eventInt: EvenInt?) {
         if (eventInt == null) {
             System.err.println("got null")
             return

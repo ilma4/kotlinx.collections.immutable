@@ -32,6 +32,7 @@ apiValidation {
 allprojects {
     repositories {
         mavenCentral()
+        mavenLocal()
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.dsl.KotlinCompile<*>> {
