@@ -47,8 +47,8 @@ class CompareTests {
     }
 
     //    class persistentVectorRandomOps {
-    @FuzzTest(maxDuration = "2m")
-    fun persistentVectorRandomOps(data: FuzzedDataProvider) {
+    @FuzzTest(maxDuration = "2h")
+    fun smallPersistentVectorRandomOps(data: FuzzedDataProvider) {
         val first = data.forceConsumeInts(initSize).toList()
         val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
 
@@ -69,7 +69,7 @@ class CompareTests {
 
     //    class smallPersistentVectorRandomOps {
     @FuzzTest(maxDuration = "2h")
-    fun listRandomOps(data: FuzzedDataProvider) {
+    fun persistentVectorRandomOps(data: FuzzedDataProvider) {
         val first = data.forceConsumeInts(2).toList()
         val memorisingList = MemorisingList(mutableListOf(first.toPersistentList()))
 
