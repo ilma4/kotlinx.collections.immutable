@@ -14,8 +14,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import tests.fuzz.HistoryList.Companion.historyList
 
 class CompareTests {
-
-
     private fun bubbleSort(historyList: HistoryList<Int>) {
         var done = false
         while (!done) {
@@ -46,7 +44,6 @@ class CompareTests {
         assertTrue(persistentHistory == listHistory)
     }
 
-    //    class persistentVectorRandomOps {
     @FuzzTest(maxDuration = "2h")
     fun smallPersistentVectorRandomOps(data: FuzzedDataProvider) {
         val first = data.forceConsumeInts(initSize).toList()
@@ -65,9 +62,7 @@ class CompareTests {
         }
         memorisingList.validate()
     }
-//    }
 
-    //    class smallPersistentVectorRandomOps {
     @FuzzTest(maxDuration = "2h")
     fun persistentVectorRandomOps(data: FuzzedDataProvider) {
         val first = data.forceConsumeInts(2).toList()
@@ -85,10 +80,7 @@ class CompareTests {
         memorisingList.validate()
     }
 
-//    }
 
-
-    //    class mapRandomOps {
     @FuzzTest(maxDuration = "2h")
     fun mapRandomOps(data: FuzzedDataProvider) {
         val firstMap = data.consumeInts(initSize)
@@ -106,7 +98,6 @@ class CompareTests {
 
         memorisingMap.validate()
     }
-//    }
 
 
     @FuzzTest(maxDuration = "2h")
@@ -127,21 +118,6 @@ class CompareTests {
         memorisingMap.validate()
     }
 
-
-    @FuzzTest
-    fun testRepeat(data: FuzzedDataProvider) {
-        val remain = data.remainingBytes()
-        val bytes = mutableListOf<Byte>()
-        repeat(remain) {
-            bytes += data.consumeByte()
-        }
-        val nextRemain = data.remainingBytes()
-        println("$remain    $nextRemain")
-
-        val nextBytes = List(remain) { data.consumeByte() }
-        assertTrue(nextBytes.all { it.toInt() == 0 })
-
-    }
 
     @FuzzTest(maxDuration = "2h")
     fun listBuilderRandomOps(data: FuzzedDataProvider) {

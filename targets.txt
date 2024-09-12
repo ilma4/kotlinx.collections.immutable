@@ -1,0 +1,8 @@
+tests.fuzz.CompareTests#bubbleSort
+tests.fuzz.CompareTests#smallPersistentVectorRandomOps
+tests.fuzz.CompareTests#persistentVectorRandomOps
+tests.fuzz.CompareTests#mapRandomOps
+tests.fuzz.CompareTests#hashMapRandomOps
+tests.fuzz.CompareTests#listBuilderRandomOps
+tests.fuzz.CompareTests#orderedMapBuilderRandomOps
+tests.fuzz.CompareTests#hashMapBuilderRandomOps
